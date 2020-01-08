@@ -133,6 +133,7 @@ relpath = comm_model.split('src/couplednetworks.py')[0]
 Perform other setup related tasks
 """
 # Set up logging.
+logging.basicConfig(filename='tester.log')
 logger = logging.getLogger('couplednetworks')
 logger.setLevel(log_level)  # 10 is debug, 20 is info, 30 is warning, 40 is error
 ch = logging.StreamHandler(sys.stdout)
@@ -354,16 +355,17 @@ def remove_links(network_a, network_b, swap_networks, iteration):
             str(node_in_subgraph) + ", iteration: " + str(iteration))
             # Find their neighbors
             node_in_subgraph_neighbors = nx.neighbors(network_b, node_in_subgraph)
-            for m in range(0, len(node_in_subgraph_neighbors), 1):
+            for m in range(0, len(list(node_in_subgraph_neighbors)), 1):
                 if node_in_subgraph in coupled_nodes:  # check that this node is coupled
                     # Remove all the edges going to those neighbor nodes
-                    network_b.remove_edges_from([(node_in_subgraph, node_in_subgraph_neighbors[m])])
-                    logger.debug("Removing edge " + str(node_in_subgraph) + "," + str(node_in_subgraph_neighbors[m]))
+                    logger.debug("M is" + str(m) + " and node_in_subgraph_neighbors is " + str(list(node_in_subgraph_neighbors)))
+                    network_b.remove_edges_from([(node_in_subgraph, list(node_in_subgraph_neighbors)[m])])
+                    logger.debug("Removing edge " + str(node_in_subgraph) + "," + str(list(node_in_subgraph_neighbors)[m]))
         # At the last subnet increment swap_again so that the networks get swapped next time
         if j == num_subnets - 1:
             swap_again += 1
     logger.debug("Original number of nodes to remove: " + str(len(nodes_to_remove)))
-    solitary_nodes = [n for n, d in network_b.degree_iter() if d == 0]  # nodes with 0 degree
+    solitary_nodes = [n for n, d in network_b.degree() if d == 0]  # nodes with 0 degree
     nodes_to_remove.extend(solitary_nodes)
     if logger.isEnabledFor(logging.DEBUG):
         nodes_to_remove = set(nodes_to_remove)
