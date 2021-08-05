@@ -183,6 +183,8 @@ You can then run cn_runner on any computer with MATLAB and a MATLAB license. For
 Compiling ```cn_runner.m``` requires the use of the MATLAB and the MATLAB Compiler Toolbox on the computer it is built on. However, only the MATLAB Compiler Runtime is required on the computer that runs the compiled code.
 To build ```cn_runner.m``` adjust and run the bash script ```src/make_cn_runner.sh``` on your environment.
 
+In order for the mex executable to find the shared library, it may be necessary to update an environment variable. ```export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${PROJECT_DIRECTORY}/src/mexosi_v03/Cbc-2.8.9/lib```. You can place this in your ```~/.bashrc``` or whatever equivalent, source it, and restart matlab so the new envirnoment variable is used.
+
 ### Mac build notes for mexosi
 
 XCode Command Line Tools need to be installed from https://developer.apple.com/downloads/.
