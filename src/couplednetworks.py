@@ -207,7 +207,7 @@ if output_result_to_DB is True or output_removed_nodes_to_DB is True or find_sca
         from pymongo import Connection
         from pymongo.errors import ConnectionFailure
     except ImportError:
-        print "Missing powerlaw and/or pymongo modules."
+        print ("Missing powerlaw and/or pymongo modules.")
 
 # x holds the p values used
 x = []
@@ -252,8 +252,8 @@ def get_coupled_nodes_from_file(run, q_point, pid):
                 if item != 0:
                     coupled_nodes.append(item)
             logger.debug("size coupled_nodes list " + str(len(coupled_nodes)) + " for run " + str(run) + ", q_point " + str(1 - q_point) + ", p_column " + str(p_column))
-        except Exception, e:
-            print "Coupled node outage read error: " + str(e)
+        except Exception as e:
+            print ("Coupled node outage read error: " + str(e))
             raise
     else:  # getting called by something else so read the coupled node file created by the other process
         coupled_node_filename = '/tmp/coupled_nodes_' + str(pid) + '.csv'
@@ -263,8 +263,8 @@ def get_coupled_nodes_from_file(run, q_point, pid):
                 for next_row in coupled_data:
                     coupled_nodes.append(int(next_row['node']))
                 logger.debug("size coupled_nodes list " + str(len(coupled_nodes)) + " for run " + str(run) + ", q_point " + str(1 - q_point))
-        except Exception, e:
-                    print "Coupled node read error: " + str(e)
+        except Exception as e:
+                    print ("Coupled node read error: " + str(e))
                     raise
     return coupled_nodes
 
@@ -282,7 +282,7 @@ def find_coupled_nodes(replication,q_point):
         number_coupled = int(math.floor(deg_of_coupling * n))
         found_coupled_nodes = random.sample(nodes, number_coupled)  # nodes that are connected between networks
     else:
-        found_coupled_nodes = get_coupled_nodes_from_file(-1, -1, mpid)  # if called by the CFS Matlab model read coupled nodes from file
+        found_coupled_nodes = get_coupled_nodes_from_file(1,1, mpid)  # if called by the CFS Matlab model read coupled nodes from file
     return found_coupled_nodes
 coupled_nodes = find_coupled_nodes(-1,-1)  # get the coupled nodes
 
@@ -370,9 +370,9 @@ def remove_links(network_a, network_b, swap_networks, iteration):
     if logger.isEnabledFor(logging.DEBUG):
         nodes_to_remove = set(nodes_to_remove)
         nodes_to_remove = list(nodes_to_remove)
-        print "Final number of nodes to remove: " + str(len(nodes_to_remove))
-        print "swap_again " + str(swap_again) + " netA size " + str(len(network_a.nodes())) + " netB size " + str(len(network_b.nodes()))
-        print "gmcca size " + str(len(gmcca)) + " gmccb size " + str(len(gmccb))
+        print ("Final number of nodes to remove: " + str(len(nodes_to_remove)))
+        print ("swap_again " + str(swap_again) + " netA size " + str(len(network_a.nodes())) + " netB size " + str(len(network_b.nodes())))
+        print ("gmcca size " + str(len(gmcca)) + " gmccb size " + str(len(gmccb)))
     return [swap_again, nodes_to_remove]
 
 
@@ -399,7 +399,7 @@ def attack_network(run, networks):
     if output_removed_nodes_to_DB is True or output_result_to_DB is True:
         try:  # Connect to MongoDB
             c = Connection(host="localhost", port=27017)
-        except ConnectionFailure, e:
+        except ConnectionFailure(e):
             sys.stderr.write("Could not connect to MongoDB: %s" % e)
             # sys.exit(1)
         dbh = c["runs"]  # sets the db to "runs"
@@ -484,9 +484,9 @@ def check_for_failure(network_a, network_b, dbh, run, y):
                                 # print "No bus separations"
                                 pass
                     except:
-                        print "CSV reader error. Check headers in file " + grid_status_filename + " and check for Unix line endings in that file."
+                        print ("CSV reader error. Check headers in file " + grid_status_filename + " and check for Unix line endings in that file.")
             except:
-                print "*************** -> Missing grid status file <- ****************"
+                print ("*************** -> Missing grid status file <- ****************")
             # if os.path.isfile(grid_status_filename):  # this is now deleted by the calling process. tmp file no longer needed so delete it
             #   os.remove(grid_status_filename)
 
@@ -499,7 +499,7 @@ def check_for_failure(network_a, network_b, dbh, run, y):
             if logger.isEnabledFor(logging.DEBUG):
                 num_nodes_attacked = len(busessep)
                 num_coupled_nodes_attacked = len(coupled_busessep)
-                print ">>>> Starting with grid, number of bus separations: " + str(num_nodes_attacked) + ". Number coupled separations: " + str(num_coupled_nodes_attacked)
+                print (">>>> Starting with grid, number of bus separations: " + str(num_nodes_attacked) + ". Number coupled separations: " + str(num_coupled_nodes_attacked))
         logger.debug("Subgraphs in network_b: " + str(len(sorted(nx.connected_component_subgraphs(network_b_copy), key=len, reverse=True))) +
             ", subgraphs in network_a: " + str(len(sorted(nx.connected_component_subgraphs(network_a_copy), key=len, reverse=True))))
         logger.debug("***Total nodes out PRE comms removal: " + str(n - len(network_a_copy.nodes())))
@@ -512,7 +512,7 @@ def check_for_failure(network_a, network_b, dbh, run, y):
         swap_networks = result[0]
         if len(result[1]) == 0:
             if verbose is True:
-                print "\t ######## No nodes removed #########"
+                print ("\t ######## No nodes removed #########")
             pass
         else:
             nodes_attacked.extend(result[1])
@@ -528,7 +528,7 @@ def check_for_failure(network_a, network_b, dbh, run, y):
         if logger.isEnabledFor(logging.DEBUG):
             network_a_copy.remove_nodes_from(coupled_busessep)  # TODO figure out where coupling is managed for power/comms
             nodes_out_post = n - len(network_a_copy.nodes())
-            print ">>>Total nodes out POST comms removal: " + str(nodes_out_post)
+            print (">>>Total nodes out POST comms removal: " + str(nodes_out_post))
 
         with open(comm_status_filename, 'w') as f:
             try:
@@ -544,7 +544,7 @@ def check_for_failure(network_a, network_b, dbh, run, y):
                         status = 0
                     writer.writerow([item, status])
             except:
-                print "CSV writer error"
+                print ("CSV writer error")
     else:  # If real is false then only simulate topological cascades.
         if p_values > 1 and q_values > 1:
             sys.stderr.write("Either p or q must equal 1 since only p or q sweep can be done at once. Configuration adjustment required to run.")
@@ -879,12 +879,12 @@ def get_nodes_from_file(run, p_point, network_a):
     # print "p_column " + str(p_column)
     if p_column > num_outages_in_file or p_column == 0:
         if verbose is True:
-            print "No outages found for p_point " + str(p_point) + " at column " + str(p_column) + " creating outage instead"
+            print ("No outages found for p_point " + str(p_point) + " at column " + str(p_column) + " creating outage instead")
         random_removal_fraction = 1 - p_point    # Fraction of nodes to remove
         num_nodes_attacked = int(math.floor(random_removal_fraction * n))
         nodes_attacked = random.sample(network_a.nodes(), num_nodes_attacked)
         if verbose is True:
-            print "size nodes_attacked list " + str(len(nodes_attacked)) + " for run " + str(run) + ", p_point " + str(p_point)
+            print ("size nodes_attacked list " + str(len(nodes_attacked)) + " for run " + str(run) + ", p_point " + str(p_point))
         return nodes_attacked
     try:
         f = bz2.BZ2File(file_name, mode='r')
@@ -897,9 +897,9 @@ def get_nodes_from_file(run, p_point, network_a):
             if item != 0:
                 nodes_attacked.append(item)
         if verbose is True:
-            print "size nodes_attacked list " + str(len(nodes_attacked)) + " for run " + str(run) + ", p_point " + str(p_point) + ", p_column " + str(p_column)
-    except Exception, e:
-                print "Node outage read error: " + str(e)
+            print ("size nodes_attacked list " + str(len(nodes_attacked)) + " for run " + str(run) + ", p_point " + str(p_point) + ", p_column " + str(p_column))
+    except Exception as e:
+                print ("Node outage read error: " + str(e))
                 raise
     # print "nodes_attacked " + str(nodes_attacked) + " run " + str(run) + ", p_point " + str(p_point)
     return nodes_attacked
@@ -913,8 +913,8 @@ def get_network_from_file(network_name):
             max_nodes = len(network.nodes()) + 1
             mapping = dict(zip(network.nodes(), range(1, max_nodes)))  # renumber the nodes to start at 1 for MATLAB
             network = nx.relabel_nodes(network, mapping)
-    except Exception, e:
-        print "Error Unknown network type for " + network_name + " " + str(e)
+    except Exception as e:
+        print ("Error Unknown network type for " + network_name + " " + str(e))
         raise
 
     return network
@@ -987,7 +987,7 @@ def create_networks(network_type):
         elif network_type == 'Lattice':
             l = math.sqrt(n)
             if(n % l != 0):
-                print "Number of nodes, " + str(n) + ", not square (i.e. sqrt(n) has a remainder) for lattice. Adjust n and retry."
+                print ("Number of nodes, " + str(n) + ", not square (i.e. sqrt(n) has a remainder) for lattice. Adjust n and retry.")
                 raise
                 sys.exit(-1)
             l = int(l)
@@ -1005,19 +1005,19 @@ def create_networks(network_type):
             '''make the comms network'''
             if cfs_iter == 1 or real is False:
                 if verbose is True:
-                    print "^^^^^ Making comm network ^^^^^^"
+                    print ("^^^^^ Making comm network ^^^^^^")
                 network_a = make_comms(network_b, True)
             else:
                 try:
                     if verbose is True:
-                        print "reading from comm network at: " + network_filename
+                        print ("reading from comm network at: " + network_filename)
                     network_a = nx.read_edgelist(network_filename, nodetype=int)
                 except Exception as e:
-                    print e
-                    print "Read edgelist error"
+                    print (e)
+                    print ("Read edgelist error")
                     raise
         else:
-            print 'Invalid network type: ' + network_type
+            print ('Invalid network type: ' + network_type)
             return []
 
     # Order the nodes of the networks randomly
@@ -1032,16 +1032,16 @@ def create_networks(network_type):
         del mapping
         del randomlist
     elif real is True and shuffle_networks is True and verbose is True:
-        print "\t ******* -> Not shuffling networks when using a real grid with CFS <- ********"
+        print ("\t ******* -> Not shuffling networks when using a real grid with CFS <- ********")
     if generate_each_run is False and find_scaling_exponent is True:
         degseq = sorted(nx.degree(network_a).values(), reverse=False)
         fit = powerlaw.Fit(degseq, xmin=2.0)
         if verbose is True:
-            print "Scaling exponent network_a " + str(fit.power_law.alpha)
+            print ("Scaling exponent network_a " + str(fit.power_law.alpha))
         degseq = sorted(nx.degree(network_b).values(), reverse=False)
         fit = powerlaw.Fit(degseq, xmin=2.0)
         if verbose is True:
-            print "Scaling exponent network_b " + str(fit.power_law.alpha)
+            print ("Scaling exponent network_b " + str(fit.power_law.alpha))
 
     return [network_a, network_b]
 
@@ -1076,7 +1076,7 @@ def main():
         x = [key for key, value in d.items()]
         write_output(x, average, average_p_half, runs)
 
-        print "Run time was " + str(time.time() - runstart) + " seconds"
+        print ("Run time was " + str(time.time() - runstart) + " seconds")
     elif real is False and batch_mode is True:  # running from a cluster
         runstart = time.time()
         y = attack_network(r_num, networks)
@@ -1095,7 +1095,7 @@ def main():
 
         write_output(x, average, average_p_half, runs)
 
-        print "Run time was " + str(time.time() - runstart) + " seconds"
+        print ("Run time was " + str(time.time() - runstart) + " seconds")
 
     else:  # This is being called by MATLAB
         attack_network(0, networks)  # set multi-run to 0 so it never writes to output
@@ -1145,5 +1145,5 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print e
+        print (e)
         raise
